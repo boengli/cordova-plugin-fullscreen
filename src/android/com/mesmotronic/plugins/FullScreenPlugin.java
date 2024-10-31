@@ -467,7 +467,9 @@ public class FullScreenPlugin extends CordovaPlugin
 						@Override
 						public void onSystemUiVisibilityChange(int visibility) 
 						{
-							decorView.setSystemUiVisibility(uiOptions);
+							if ((visibility & uiOptions) != uiOptions) {
+								decorView.setSystemUiVisibility(uiOptions);
+							}
 						}
 					});
 					
