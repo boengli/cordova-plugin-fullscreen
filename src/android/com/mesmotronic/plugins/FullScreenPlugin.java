@@ -17,6 +17,8 @@ import android.view.WindowManager;
 import android.graphics.Color;
 import android.os.Handler;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class FullScreenPlugin extends CordovaPlugin
 {
 	public static final String ACTION_IS_SUPPORTED = "isSupported";
@@ -43,6 +45,9 @@ public class FullScreenPlugin extends CordovaPlugin
 	        leanMode();
 	    }
 	};
+
+	// AtomicBoolean flag to prevent re-entrant calls
+	private AtomicBoolean isVisibilityBeingSet = new AtomicBoolean(false);
 	
 	/**
      * Sets the context of the Command. This can then be used to do things like
@@ -465,10 +470,11 @@ public class FullScreenPlugin extends CordovaPlugin
 					decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
 					{
 						@Override
-						public void onSystemUiVisibilityChange(int visibility) 
-						{
-							if ((visibility & uiOptions) != uiOptions) {
+						public void onSystemUiVisibilityChange(int visibility) {
+							if (!isVisibilityBeingSet.get() && (visibility & uiOptions) != uiOptions) {
+								isVisibilityBeingSet.set(true);
 								decorView.setSystemUiVisibility(uiOptions);
+								isVisibilityBeingSet.set(false);
 							}
 						}
 					});
