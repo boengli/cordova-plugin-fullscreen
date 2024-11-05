@@ -463,9 +463,9 @@ public class FullScreenPlugin extends CordovaPlugin
                 try {
                     // Using reflection makes sure any 5.0+ device will work without having to compile with SDK level 21
                     window.getClass().getDeclaredMethod("setStatusBarColor", int.class).invoke(window, Color.parseColor(colorPref));
-                } catch (IllegalArgumentException ignore) {
                 } catch (Exception ignore) {
-                }
+					// Ignoring exception as intended
+				}
             }
         }
     }
