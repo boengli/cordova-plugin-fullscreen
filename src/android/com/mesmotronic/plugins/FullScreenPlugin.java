@@ -39,12 +39,7 @@ public class FullScreenPlugin extends CordovaPlugin
 	private View decorView;
 	private int mLastSystemUIVisibility = 0;
 	private final Handler mLeanBackHandler = new Handler();
-	private final Runnable mEnterLeanback = new Runnable() {
-	    @Override
-	    public void run() {
-	        leanMode();
-	    }
-	};
+	private final Runnable mEnterLeanback = this::leanMode;
 
 	// AtomicBoolean flag to prevent re-entrant calls
 	private AtomicBoolean isVisibilityBeingSet = new AtomicBoolean(false);
@@ -60,17 +55,14 @@ public class FullScreenPlugin extends CordovaPlugin
     public void initialize(final CordovaInterface cordova, final CordovaWebView webView) {
         super.initialize(cordova, webView);
 
-        this.cordova.getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                // Clear flag FLAG_FORCE_NOT_FULLSCREEN which is set initially
-                // by the Cordova.
-                Window window = cordova.getActivity().getWindow();
-                window.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+        this.cordova.getActivity().runOnUiThread(() -> {
+            // Clear flag FLAG_FORCE_NOT_FULLSCREEN which is set initially
+            // by the Cordova.
+            Window window = cordova.getActivity().getWindow();
+            window.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 
-                // Read 'StatusBarBackgroundColor' from config.xml, default is #000000.
-                setStatusBarBackgroundColor(preferences.getString("StatusBarBackgroundColor", "#000000"));
-            }
+            // Read 'StatusBarBackgroundColor' from config.xml, default is #000000.
+            setStatusBarBackgroundColor(preferences.getString("StatusBarBackgroundColor", "#000000"));
         });
     }
 
@@ -145,24 +137,19 @@ public class FullScreenPlugin extends CordovaPlugin
 	 */
 	protected boolean immersiveWidth()
 	{
-		activity.runOnUiThread(new Runnable()
-		{
-			@Override
-			public void run() 
+		activity.runOnUiThread(() -> {
+			try
 			{
-				try
-				{
-					Point outSize = new Point();
-					
-					decorView.getDisplay().getRealSize(outSize);
-					
-			        PluginResult res = new PluginResult(PluginResult.Status.OK, outSize.x);
-			        context.sendPluginResult(res);
-				}
-				catch (Exception e)
-				{
-					context.error(e.getMessage());
-				}
+				Point outSize = new Point();
+				
+				decorView.getDisplay().getRealSize(outSize);
+				
+		        PluginResult res = new PluginResult(PluginResult.Status.OK, outSize.x);
+		        context.sendPluginResult(res);
+			}
+			catch (Exception e)
+			{
+				context.error(e.getMessage());
 			}
 		});
 		
@@ -174,24 +161,19 @@ public class FullScreenPlugin extends CordovaPlugin
 	 */	
 	protected boolean immersiveHeight()
 	{
-		activity.runOnUiThread(new Runnable()
-		{
-			@Override
-			public void run() 
+		activity.runOnUiThread(() -> {
+			try
 			{
-				try
-				{
-					Point outSize = new Point();
-					
-					decorView.getDisplay().getRealSize(outSize);
-					
-			        PluginResult res = new PluginResult(PluginResult.Status.OK, outSize.y);
-			        context.sendPluginResult(res);
-				}
-				catch (Exception e)
-				{
-					context.error(e.getMessage());
-				}
+				Point outSize = new Point();
+				
+				decorView.getDisplay().getRealSize(outSize);
+				
+		        PluginResult res = new PluginResult(PluginResult.Status.OK, outSize.y);
+		        context.sendPluginResult(res);
+			}
+			catch (Exception e)
+			{
+				context.error(e.getMessage());
 			}
 		});
         
@@ -209,44 +191,34 @@ public class FullScreenPlugin extends CordovaPlugin
 			return false;
 		}
 		
-		activity.runOnUiThread(new Runnable()
-		{
-			@Override
-			public void run() 
+		activity.runOnUiThread(() -> {
+			try
 			{
-				try
-				{
-					resetWindow();
-					
-					int uiOptions = 
-						View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-						| View.SYSTEM_UI_FLAG_FULLSCREEN
-			            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-			            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-			            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-					
-					mLastSystemUIVisibility = uiOptions;
-					decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
-					{
-						@Override
-						public void onSystemUiVisibilityChange(int visibility) 
-						{
-							if((mLastSystemUIVisibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) != 0
-                 					&& (visibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0) {
-        						resetHideTimer();
-    						}
-    						mLastSystemUIVisibility = visibility;
-						}
-					});
+				resetWindow();
+				
+				int uiOptions = 
+					View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+					| View.SYSTEM_UI_FLAG_FULLSCREEN
+		            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+		            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+		            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+				
+				mLastSystemUIVisibility = uiOptions;
+				decorView.setOnSystemUiVisibilityChangeListener(visibility -> {
+					if((mLastSystemUIVisibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) != 0
+							&& (visibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0) {
+						resetHideTimer();
+					}
+					mLastSystemUIVisibility = visibility;
+				});
 
-					decorView.setSystemUiVisibility(uiOptions);
-					
-					context.success();
-				}
-				catch (Exception e)
-				{
-					context.error(e.getMessage());
-				}
+				decorView.setSystemUiVisibility(uiOptions);
+				
+				context.success();
+			}
+			catch (Exception e)
+			{
+				context.error(e.getMessage());
 			}
 		});
 		
@@ -271,38 +243,33 @@ public class FullScreenPlugin extends CordovaPlugin
 			return false;
 		}
 		
-		activity.runOnUiThread(new Runnable()
-		{
-			@Override
-			public void run() 
+		activity.runOnUiThread(() -> {
+			try
 			{
-				try
-				{
-					resetWindow();
-			        
-					// Remove translucent theme from bars
-					
-					window.clearFlags
-					(
-						WindowManager.LayoutParams.FLAG_FULLSCREEN 
-						| WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION 
-						| WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
-					);
-					
-			        // Update system UI
-					
-					decorView.setOnSystemUiVisibilityChangeListener(null);
-					decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
-					
-					PluginResult res = new PluginResult(PluginResult.Status.OK, true);
-			        context.sendPluginResult(res);
-					
-					context.success();
-				}
-				catch (Exception e)
-				{
-					context.error(e.getMessage());
-				}
+				resetWindow();
+		        
+				// Remove translucent theme from bars
+				
+				window.clearFlags
+				(
+					WindowManager.LayoutParams.FLAG_FULLSCREEN 
+					| WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION 
+					| WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
+				);
+				
+		        // Update system UI
+				
+				decorView.setOnSystemUiVisibilityChangeListener(null);
+				decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+				
+				PluginResult res = new PluginResult(PluginResult.Status.OK, true);
+		        context.sendPluginResult(res);
+				
+				context.success();
+			}
+			catch (Exception e)
+			{
+				context.error(e.getMessage());
 			}
 		});			
 		
@@ -320,34 +287,29 @@ public class FullScreenPlugin extends CordovaPlugin
 			return false;
 		}
 		
-		activity.runOnUiThread(new Runnable()
-		{
-			@Override
-			public void run() 
+		activity.runOnUiThread(() -> {
+			try
 			{
-				try
-				{
-					resetWindow();
-					
-					// Make the status bar translucent
-					
-			        window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-			        
-			        // Extend view underneath status bar
-					
-					int uiOptions = 
-						View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-						| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+				resetWindow();
+				
+				// Make the status bar translucent
+				
+		        window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+		        
+		        // Extend view underneath status bar
+				
+				int uiOptions = 
+					View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+					| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+					| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
 
-					decorView.setSystemUiVisibility(uiOptions);
-					
-					context.success();
-				}
-				catch (Exception e)
-				{
-					context.error(e.getMessage());
-				}
+				decorView.setSystemUiVisibility(uiOptions);
+				
+				context.success();
+			}
+			catch (Exception e)
+			{
+				context.error(e.getMessage());
 			}
 		});
 		
@@ -359,20 +321,15 @@ public class FullScreenPlugin extends CordovaPlugin
 	 */
 	protected boolean resetScreen()
 	{
-		activity.runOnUiThread(new Runnable()
-		{
-			@Override
-			public void run() 
+		activity.runOnUiThread(() -> {
+			try
 			{
-				try
-				{
-					decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
-					context.success();
-				}
-				catch (Exception e)
-				{
-					context.error(e.getMessage());
-				}
+				decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+				context.success();
+			}
+			catch (Exception e)
+			{
+				context.error(e.getMessage());
 			}
 		});
 		
@@ -390,34 +347,29 @@ public class FullScreenPlugin extends CordovaPlugin
 			return false;
 		}
 		
-		activity.runOnUiThread(new Runnable()
-		{
-			@Override
-			public void run() 
+		activity.runOnUiThread(() -> {
+			try
 			{
-				try
-				{
-					resetWindow();
-					
-					// Make the status and nav bars translucent
-					
-					window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-					window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-					
-					// Extend view underneath status and nav bars
-					
-					int uiOptions = 
-							View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-							| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-					
-					decorView.setSystemUiVisibility(uiOptions);
-					
-					context.success();
-				}
-				catch (Exception e)
-				{
-					context.error(e.getMessage());
-				}
+				resetWindow();
+				
+				// Make the status and nav bars translucent
+				
+				window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION, WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+				window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+				
+				// Extend view underneath status and nav bars
+				
+				int uiOptions = 
+						View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+						| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+				
+				decorView.setSystemUiVisibility(uiOptions);
+				
+				context.success();
+			}
+			catch (Exception e)
+			{
+				context.error(e.getMessage());
 			}
 		});
 		
@@ -435,56 +387,42 @@ public class FullScreenPlugin extends CordovaPlugin
 			return false;
 		}
 		
-		activity.runOnUiThread(new Runnable()
-		{
-			@Override
-			public void run() 
+		activity.runOnUiThread(() -> {
+			try
 			{
-				try
-				{
-					resetWindow();
-					
-					final int uiOptions = 
-						View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-						| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-						| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-						| View.SYSTEM_UI_FLAG_FULLSCREEN
-						| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-					
-					window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-					decorView.setSystemUiVisibility(uiOptions);
-					
-					decorView.setOnFocusChangeListener(new View.OnFocusChangeListener() 
+				resetWindow();
+				
+				final int uiOptions = 
+					View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+					| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+					| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+					| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+					| View.SYSTEM_UI_FLAG_FULLSCREEN
+					| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+				
+				window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+				decorView.setSystemUiVisibility(uiOptions);
+				
+				decorView.setOnFocusChangeListener((v, hasFocus) -> {
+					if (hasFocus)
 					{
-						@Override
-						public void onFocusChange(View v, boolean hasFocus) 
-						{
-							if (hasFocus)
-							{
-								decorView.setSystemUiVisibility(uiOptions);
-							}
-						}
-					});
-					
-					decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
-					{
-						@Override
-						public void onSystemUiVisibilityChange(int visibility) {
-							if (!isVisibilityBeingSet.get() && (visibility & uiOptions) != uiOptions) {
-								isVisibilityBeingSet.set(true);
-								decorView.setSystemUiVisibility(uiOptions);
-								isVisibilityBeingSet.set(false);
-							}
-						}
-					});
-					
-					context.success();
-				}
-				catch (Exception e)
-				{
-					context.error(e.getMessage());
-				}
+						decorView.setSystemUiVisibility(uiOptions);
+					}
+				});
+				
+				decorView.setOnSystemUiVisibilityChangeListener(visibility -> {
+					if (!isVisibilityBeingSet.get() && (visibility & uiOptions) != uiOptions) {
+						isVisibilityBeingSet.set(true);
+						decorView.setSystemUiVisibility(uiOptions);
+						isVisibilityBeingSet.set(false);
+					}
+				});
+				
+				context.success();
+			}
+			catch (Exception e)
+			{
+				context.error(e.getMessage());
 			}
 		});
 			
@@ -499,21 +437,16 @@ public class FullScreenPlugin extends CordovaPlugin
 			return false;
 		}
 		
-		activity.runOnUiThread(new Runnable()
-		{
-			@Override
-			public void run() 
+		activity.runOnUiThread(() -> {
+			try
 			{
-				try
-				{
-					resetWindow();
-					decorView.setSystemUiVisibility(visibility);
-					context.success();
-				}
-				catch (Exception e)
-				{
-					context.error(e.getMessage());
-				}
+				resetWindow();
+				decorView.setSystemUiVisibility(visibility);
+				context.success();
+			}
+			catch (Exception e)
+			{
+				context.error(e.getMessage());
 			}
 		});
 		
